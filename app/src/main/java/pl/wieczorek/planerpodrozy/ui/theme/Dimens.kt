@@ -23,6 +23,9 @@ object Dimens {
     /** Zaokrąglenie dolnych rogów nagłówka listy i górnych rogów bottom sheetu. */
     val SheetCornerRadius = 28.dp
 
+    /** Dolny odstęp listy, żeby ostatniego elementu nie zasłaniał pływający przycisk. */
+    val FabClearance = 88.dp
+
     // Nagłówek „Moje podróże”
     val ListHeaderHeight = 88.dp
 
