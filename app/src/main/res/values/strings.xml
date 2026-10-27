@@ -1,3 +1,94 @@
 <resources>
-    <string name="app_name">PlanerPodrozy</string>
+    <string name="app_name">Planer Podróży</string>
+
+    <!-- Wspólne -->
+    <string name="action_back">Wstecz</string>
+    <string name="action_cancel">Anuluj</string>
+    <string name="action_save">Zapisz</string>
+    <string name="action_ok">OK</string>
+    <string name="action_add">Dodaj</string>
+    <plurals name="trip_duration_days">
+        <item quantity="one">%d dzień</item>
+        <item quantity="few">%d dni</item>
+        <item quantity="many">%d dni</item>
+        <item quantity="other">%d dni</item>
+    </plurals>
+    <string name="cd_trip_cover">Okładka podróży</string>
+    <string name="cd_empty_trip">Brak zdjęć w podróży</string>
+
+    <!-- 01 Lista podróży -->
+    <string name="trip_list_title">Moje podróże</string>
+    <string name="trip_list_add">Dodaj podróż</string>
+    <string name="trip_list_sort_ascending">Sortuj rosnąco</string>
+    <string name="trip_list_sort_descending">Sortuj malejąco</string>
+    <string name="trip_list_empty_title">Nie masz jeszcze żadnej podróży</string>
+    <string name="trip_list_empty_hint">Kliknij „+”, aby zaplanować pierwszy wyjazd.</string>
+
+    <!-- 02/03 Nowa podróż -->
+    <string name="new_trip_title">Nowa podróż</string>
+    <string name="new_trip_heading">Dokąd tym razem?</string>
+    <string name="new_trip_destination">Cel podróży</string>
+    <string name="new_trip_from">Od</string>
+    <string name="new_trip_to">Do</string>
+    <string name="cd_pick_dates">Wybierz daty</string>
+
+    <!-- 04 Widok podróży -->
+    <string name="trip_detail_gallery">Zobacz galerię</string>
+    <string name="trip_detail_days">DNI PODRÓŻY</string>
+    <string name="trip_detail_media">FILM I NOTATKA GŁOSOWA</string>
+    <string name="trip_detail_add_media">Dodaj film lub notatkę</string>
+    <string name="day_number">Dzień %d</string>
+    <string name="day_photo_count">%1$d/%2$d</string>
+    <string name="media_video_title">Film z podróży</string>
+    <string name="media_voice_title">Notatka głosowa</string>
+    <string name="media_video_empty">Brak filmu. Dodaj go przyciskiem „+”.</string>
+    <string name="media_voice_empty">Brak notatki. Nagraj ją przyciskiem „+”.</string>
+    <string name="media_add_video">Dodaj film</string>
+    <string name="media_add_video_hint">Wybierz film z telefonu</string>
+    <string name="media_record_voice">Nagraj notatkę głosową</string>
+    <string name="media_record_voice_hint">Nagraj kilka słów o podróży</string>
+    <string name="media_time_progress">%1$s / %2$s</string>
+    <string name="cd_play">Odtwórz</string>
+    <string name="cd_pause">Wstrzymaj</string>
+
+    <!-- 05 / 05b Dzień -->
+    <string name="day_photos_heading">Trzy kadry dnia</string>
+    <string name="day_edit">Edytuj</string>
+    <string name="day_description">Opis dnia</string>
+    <string name="day_description_empty">Brak opisu. Dodaj go w edycji dnia.</string>
+    <string name="day_add_photo">Dodaj zdjęcie</string>
+    <string name="day_edit_title">Edycja dnia</string>
+    <string name="day_edit_photos_heading">Kadry dnia</string>
+    <string name="day_edit_add_location">Dodaj lokalizację</string>
+    <string name="day_edit_description_counter">%1$d / %2$d</string>
+    <string name="cd_change_photo">Zmień zdjęcie</string>
+    <string name="cd_delete_photo">Usuń zdjęcie</string>
+    <string name="cd_remove_location">Usuń lokalizację</string>
+    <string name="add_location_title">Nowa lokalizacja</string>
+    <string name="add_location_hint">np. Positano, Włochy</string>
+
+    <!-- Kategorie zdjęć -->
+    <string name="category_landscape">Krajobraz</string>
+    <string name="category_food">Jedzenie</string>
+    <string name="category_selfie">Selfie</string>
+
+    <!-- 06 Wybór źródła zdjęcia -->
+    <string name="photo_source_title">Dodaj zdjęcie</string>
+    <string name="photo_source_context">%1$s · Dzień %2$d · %3$s</string>
+    <string name="photo_source_camera">Zrób zdjęcie</string>
+    <string name="photo_source_camera_hint">Uchwyć tę chwilę aparatem</string>
+    <string name="photo_source_gallery">Wybierz z galerii</string>
+    <string name="photo_source_gallery_hint">Dodaj wspomnienie z telefonu</string>
+
+    <!-- 07 Galeria -->
+    <string name="gallery_title">Galeria – %s</string>
+    <string name="gallery_filter_all">Wszystkie</string>
+    <string name="gallery_filter_landscape">Krajobrazy</string>
+    <string name="gallery_filter_food">Jedzenie</string>
+    <string name="gallery_filter_selfie">Selfie</string>
+    <string name="gallery_empty">Brak zdjęć w tej kategorii.</string>
+
+    <!-- Nagrywanie notatki -->
+    <string name="record_title">Nagrywanie notatki</string>
+    <string name="record_stop_save">Zatrzymaj i zapisz</string>
 </resources>
