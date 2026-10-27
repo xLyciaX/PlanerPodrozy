@@ -21,46 +21,46 @@ fun PlanerNavHost() {
     val navController = rememberNavController()
     val goBack: () -> Unit = { navController.popBackStack() }
 
-    NavHost(navController = navController, startDestination = TripListRoute) {
-        composable<TripListRoute> {
+    NavHost(navController = navController, startDestination = TripListDestination) {
+        composable<TripListDestination> {
             // TODO etap 2: kierunek sortowania przeniesie się do TripListViewModel.
             var sortOrder by rememberSaveable { mutableStateOf(SortOrder.DESCENDING) }
             TripListScreen(
                 sortOrder = sortOrder,
-                onAddTrip = { navController.navigate(NewTripRoute) },
+                onAddTrip = { navController.navigate(NewTripDestination) },
                 onSortChange = { sortOrder = it },
-                onOpenSampleTrip = { navController.navigate(TripDetailRoute(tripId = 1)) },
+                onOpenSampleTrip = { navController.navigate(TripDetailDestination(tripId = 1)) },
             )
         }
-        composable<NewTripRoute> {
+        composable<NewTripDestination> {
             SkeletonScreen(
                 title = stringResource(R.string.new_trip_title),
                 onBack = goBack,
             )
         }
-        composable<TripDetailRoute> { entry ->
-            val route = entry.toRoute<TripDetailRoute>()
+        composable<TripDetailDestination> { entry ->
+            val route = entry.toRoute<TripDetailDestination>()
             SkeletonScreen(
                 title = "Podróż ${route.tripId}",
                 onBack = goBack,
                 links = listOf(
-                    "Dzień 1" to { navController.navigate(DayRoute(dayId = 1)) },
-                    "Galeria" to { navController.navigate(GalleryRoute(tripId = route.tripId)) },
+                    "Dzień 1" to { navController.navigate(DayDestination(dayId = 1)) },
+                    "Galeria" to { navController.navigate(GalleryDestination(tripId = route.tripId)) },
                 ),
             )
         }
-        composable<DayRoute> { entry ->
-            val route = entry.toRoute<DayRoute>()
+        composable<DayDestination> { entry ->
+            val route = entry.toRoute<DayDestination>()
             SkeletonScreen(
                 title = stringResource(R.string.day_number, route.dayId.toInt()),
                 onBack = goBack,
-                links = listOf("Edycja dnia" to { navController.navigate(DayEditRoute(route.dayId)) }),
+                links = listOf("Edycja dnia" to { navController.navigate(DayEditDestination(route.dayId)) }),
             )
         }
-        composable<DayEditRoute> {
+        composable<DayEditDestination> {
             SkeletonScreen(title = stringResource(R.string.day_edit_title), onBack = goBack)
         }
-        composable<GalleryRoute> {
+        composable<GalleryDestination> {
             SkeletonScreen(
                 title = stringResource(R.string.gallery_title, "…"),
                 onBack = goBack,
