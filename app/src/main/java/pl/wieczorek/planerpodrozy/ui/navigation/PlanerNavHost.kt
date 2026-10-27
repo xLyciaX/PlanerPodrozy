@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import pl.wieczorek.planerpodrozy.R
 import pl.wieczorek.planerpodrozy.ui.screens.SkeletonScreen
+import pl.wieczorek.planerpodrozy.ui.screens.newtrip.NewTripRoute
 import pl.wieczorek.planerpodrozy.ui.screens.triplist.TripListRoute
 
 /** Mapa ekranów aplikacji: która trasa pokazuje który ekran i dokąd z niego można przejść. */
@@ -24,10 +25,7 @@ fun PlanerNavHost() {
             )
         }
         composable<NewTripDestination> {
-            SkeletonScreen(
-                title = stringResource(R.string.new_trip_title),
-                onBack = goBack,
-            )
+            NewTripRoute(onClose = goBack)
         }
         composable<TripDetailDestination> { entry ->
             val route = entry.toRoute<TripDetailDestination>()

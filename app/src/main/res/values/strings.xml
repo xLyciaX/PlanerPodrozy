@@ -31,6 +31,8 @@
     <string name="new_trip_from">Od</string>
     <string name="new_trip_to">Do</string>
     <string name="cd_pick_dates">Wybierz daty</string>
+    <string name="new_trip_pick_dates_title">Wybierz daty podróży</string>
+    <string name="new_trip_date_range">%1$s – %2$s</string>
 
     <!-- 04 Widok podróży -->
     <string name="trip_detail_gallery">Zobacz galerię</string>
