@@ -3,6 +3,7 @@ package pl.wieczorek.planerpodrozy.ui.screens.triplist
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -26,31 +29,49 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pl.wieczorek.planerpodrozy.R
+import pl.wieczorek.planerpodrozy.domain.model.Trip
+import pl.wieczorek.planerpodrozy.domain.model.TripSummary
+import pl.wieczorek.planerpodrozy.ui.components.TripCard
+import pl.wieczorek.planerpodrozy.ui.format.DateFormatter
+import pl.wieczorek.planerpodrozy.ui.planerViewModel
 import pl.wieczorek.planerpodrozy.ui.theme.Dimens
-import pl.wieczorek.planerpodrozy.ui.screens.SkeletonLink
 import pl.wieczorek.planerpodrozy.ui.theme.PlanerPodrozyTheme
+import java.time.Instant
+import java.time.LocalDate
 
-enum class SortOrder { ASCENDING, DESCENDING }
+/** Ekran 01 podłączony do ViewModelu; nawigację przekazuje wyżej. */
+@Composable
+fun TripListRoute(
+    onAddTrip: () -> Unit,
+    onOpenTrip: (tripId: Long) -> Unit,
+) {
+    val viewModel = planerViewModel { TripListViewModel(it.tripRepository) }
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    TripListScreen(
+        state = state,
+        onAddTrip = onAddTrip,
+        onOpenTrip = onOpenTrip,
+        onSortChange = viewModel::onSortChange,
+    )
+}
 
-/**
- * Ekran 01. W etapie 1 pokazuje nagłówek, przyciski i pusty stan.
- * Lista kart podróży dojdzie w etapie 2, razem z bazą danych.
- */
+/** Ekran 01 bez stanu: rysuje to, co dostanie w [state]. */
 @Composable
 fun TripListScreen(
-    sortOrder: SortOrder,
+    state: TripListUiState,
     onAddTrip: () -> Unit,
+    onOpenTrip: (tripId: Long) -> Unit,
     onSortChange: (SortOrder) -> Unit,
     modifier: Modifier = Modifier,
-    // TODO etap 2: usunąć, przejście do podróży będzie z karty na liście.
-    onOpenSampleTrip: (() -> Unit)? = null,
 ) {
     Scaffold(
         topBar = { TripListHeader() },
@@ -68,33 +89,58 @@ fun TripListScreen(
         modifier = modifier,
     ) { padding ->
         Column(
-            verticalArrangement = Arrangement.spacedBy(Dimens.SpaceM),
             modifier = Modifier
                 .padding(padding)
-                .padding(Dimens.ScreenPadding)
                 .fillMaxSize(),
         ) {
             Row(
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceS, Alignment.End),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Dimens.ScreenPadding),
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceS)) {
-                    SortButton(
-                        icon = Icons.Filled.KeyboardArrowUp,
-                        contentDescription = stringResource(R.string.trip_list_sort_ascending),
-                        active = sortOrder == SortOrder.ASCENDING,
-                        onClick = { onSortChange(SortOrder.ASCENDING) },
-                    )
-                    SortButton(
-                        icon = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = stringResource(R.string.trip_list_sort_descending),
-                        active = sortOrder == SortOrder.DESCENDING,
-                        onClick = { onSortChange(SortOrder.DESCENDING) },
-                    )
-                }
+                SortButton(
+                    icon = Icons.Filled.KeyboardArrowUp,
+                    contentDescription = stringResource(R.string.trip_list_sort_ascending),
+                    active = state.sortOrder == SortOrder.ASCENDING,
+                    onClick = { onSortChange(SortOrder.ASCENDING) },
+                )
+                SortButton(
+                    icon = Icons.Filled.KeyboardArrowDown,
+                    contentDescription = stringResource(R.string.trip_list_sort_descending),
+                    active = state.sortOrder == SortOrder.DESCENDING,
+                    onClick = { onSortChange(SortOrder.DESCENDING) },
+                )
             }
-            EmptyTripList(onOpenSampleTrip)
+            when {
+                state.isLoading -> Unit
+                state.trips.isEmpty() -> EmptyTripList()
+                else -> TripList(trips = state.trips, onOpenTrip = onOpenTrip)
+            }
+        }
+    }
+}
+
+@Composable
+private fun TripList(trips: List<TripSummary>, onOpenTrip: (Long) -> Unit) {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(Dimens.SpaceM),
+        // Dolny odstęp, żeby ostatniej karty nie zasłaniał przycisk „+”.
+        contentPadding = PaddingValues(
+            start = Dimens.ScreenPadding,
+            end = Dimens.ScreenPadding,
+            bottom = Dimens.FabClearance,
+        ),
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        items(trips, key = { it.trip.id }) { summary ->
+            TripCard(
+                name = summary.trip.name,
+                dateRange = DateFormatter.range(summary.trip.startDate, summary.trip.endDate),
+                days = summary.trip.dayCount,
+                coverPath = summary.coverPath,
+                onClick = { onOpenTrip(summary.trip.id) },
+            )
         }
     }
 }
@@ -151,7 +197,7 @@ private fun SortButton(
 }
 
 @Composable
-private fun EmptyTripList(onOpenSampleTrip: (() -> Unit)?) {
+private fun EmptyTripList() {
     Column(
         verticalArrangement = Arrangement.spacedBy(Dimens.SpaceS, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -177,14 +223,50 @@ private fun EmptyTripList(onOpenSampleTrip: (() -> Unit)?) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
-        onOpenSampleTrip?.let { SkeletonLink("Widok podróży", it) }
     }
 }
+
+private fun previewTrip(id: Long, name: String, start: LocalDate, days: Long) = TripSummary(
+    trip = Trip(
+        id = id,
+        name = name,
+        startDate = start,
+        endDate = start.plusDays(days - 1),
+        videoPath = null,
+        voiceNotePath = null,
+        createdAt = Instant.EPOCH,
+    ),
+    coverPath = null,
+)
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
 private fun TripListScreenPreview() {
     PlanerPodrozyTheme {
-        TripListScreen(sortOrder = SortOrder.DESCENDING, onAddTrip = {}, onSortChange = {})
+        TripListScreen(
+            state = TripListUiState(
+                trips = listOf(
+                    previewTrip(1, "Włochy 2026", LocalDate.of(2026, 7, 12), 7),
+                    previewTrip(2, "Weekend w Tatrach", LocalDate.of(2026, 6, 19), 3),
+                ),
+                isLoading = false,
+            ),
+            onAddTrip = {},
+            onOpenTrip = {},
+            onSortChange = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Composable
+private fun TripListScreenEmptyPreview() {
+    PlanerPodrozyTheme {
+        TripListScreen(
+            state = TripListUiState(isLoading = false),
+            onAddTrip = {},
+            onOpenTrip = {},
+            onSortChange = {},
+        )
     }
 }

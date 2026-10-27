@@ -1,10 +1,6 @@
 package pl.wieczorek.planerpodrozy.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -12,8 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import pl.wieczorek.planerpodrozy.R
 import pl.wieczorek.planerpodrozy.ui.screens.SkeletonScreen
-import pl.wieczorek.planerpodrozy.ui.screens.triplist.SortOrder
-import pl.wieczorek.planerpodrozy.ui.screens.triplist.TripListScreen
+import pl.wieczorek.planerpodrozy.ui.screens.triplist.TripListRoute
 
 /** Mapa ekranów aplikacji: która trasa pokazuje który ekran i dokąd z niego można przejść. */
 @Composable
@@ -23,13 +18,9 @@ fun PlanerNavHost() {
 
     NavHost(navController = navController, startDestination = TripListDestination) {
         composable<TripListDestination> {
-            // TODO etap 2: kierunek sortowania przeniesie się do TripListViewModel.
-            var sortOrder by rememberSaveable { mutableStateOf(SortOrder.DESCENDING) }
-            TripListScreen(
-                sortOrder = sortOrder,
+            TripListRoute(
                 onAddTrip = { navController.navigate(NewTripDestination) },
-                onSortChange = { sortOrder = it },
-                onOpenSampleTrip = { navController.navigate(TripDetailDestination(tripId = 1)) },
+                onOpenTrip = { tripId -> navController.navigate(TripDetailDestination(tripId)) },
             )
         }
         composable<NewTripDestination> {
