@@ -16,8 +16,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Luggage
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -54,6 +54,16 @@ fun TripListScreen(
 ) {
     Scaffold(
         topBar = { TripListHeader() },
+        // „+” w prawym dolnym rogu, w zasięgu kciuka praworęcznej osoby.
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddTrip,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ) {
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.trip_list_add))
+            }
+        },
         containerColor = MaterialTheme.colorScheme.background,
         modifier = modifier,
     ) { padding ->
@@ -65,13 +75,10 @@ fun TripListScreen(
                 .fillMaxSize(),
         ) {
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                FilledIconButton(onClick = onAddTrip) {
-                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.trip_list_add))
-                }
                 Row(horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceS)) {
                     SortButton(
                         icon = Icons.Filled.KeyboardArrowUp,
