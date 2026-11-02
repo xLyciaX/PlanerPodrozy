@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 import pl.wieczorek.planerpodrozy.data.media.MediaStorage
 import pl.wieczorek.planerpodrozy.data.repository.DayRepository
 import pl.wieczorek.planerpodrozy.domain.model.PhotoCategory
+import pl.wieczorek.planerpodrozy.ui.media.PhotoPickTracker
+import pl.wieczorek.planerpodrozy.ui.media.PickedPhoto
 
 class DayViewModel(
     private val dayId: Long,
@@ -22,10 +24,7 @@ class DayViewModel(
     private val photoSourceCategory = MutableStateFlow<PhotoCategory?>(null)
     private val showPhotoError = MutableStateFlow(false)
 
-    // Dokąd ma trafić wynik z aparatu lub galerii (aparat i galeria to osobne aplikacje,
-    // więc między wysłaniem prośby a wynikiem trzeba zapamiętać kategorię kadru).
-    private var pendingCamera: Pair<PhotoCategory, String>? = null
-    private var pendingGalleryCategory: PhotoCategory? = null
+    private val photoPick = PhotoPickTracker(mediaStorage)
 
     val uiState: StateFlow<DayUiState> =
         combine(dayRepository.observeDay(dayId), photoSourceCategory, showPhotoError) { day, category, error ->
@@ -45,39 +44,30 @@ class DayViewModel(
     }
 
     /** Tworzy plik na zdjęcie i zwraca adres, pod który aparat ma je zapisać. */
-    fun prepareCameraPhoto(category: PhotoCategory): Uri {
-        val target = mediaStorage.createCameraPhoto()
-        pendingCamera = category to target.path
-        return target.uri
-    }
+    fun prepareCameraPhoto(category: PhotoCategory): Uri = photoPick.prepareCamera(category)
 
+    // Zdjęcie dodane z widoku dnia zapisuje się od razu (bez przycisku „Zapisz dzień”).
     fun onCameraResult(success: Boolean) {
-        val (category, path) = pendingCamera ?: return
-        pendingCamera = null
         viewModelScope.launch {
-            if (success) {
-                dayRepository.setPhoto(dayId, category, path)
-            } else {
-                // Anulowano zdjęcie: pusty plik nie jest potrzebny.
-                mediaStorage.delete(path)
-            }
+            photoPick.onCameraResult(success)?.let { save(it) }
         }
     }
 
     fun onGalleryPickStarted(category: PhotoCategory) {
-        pendingGalleryCategory = category
+        photoPick.onGalleryStarted(category)
     }
 
     /** [uri] = null, gdy użytkownik zamknął galerię bez wyboru. */
     fun onGalleryResult(uri: Uri?) {
-        val category = pendingGalleryCategory ?: return
-        pendingGalleryCategory = null
-        if (uri == null) return
         viewModelScope.launch {
-            runCatching { mediaStorage.importPhoto(uri) }
-                .onSuccess { path -> dayRepository.setPhoto(dayId, category, path) }
+            runCatching { photoPick.onGalleryResult(uri) }
+                .onSuccess { picked -> picked?.let { save(it) } }
                 .onFailure { showPhotoError.value = true }
         }
+    }
+
+    private suspend fun save(photo: PickedPhoto) {
+        dayRepository.setPhoto(dayId, photo.category, photo.filePath)
     }
 
     fun onPhotoErrorShown() {
