@@ -1,5 +1,9 @@
 package pl.wieczorek.planerpodrozy.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
@@ -13,6 +17,8 @@ import pl.wieczorek.planerpodrozy.ui.screens.dayedit.DayEditRoute
 import pl.wieczorek.planerpodrozy.ui.screens.newtrip.NewTripRoute
 import pl.wieczorek.planerpodrozy.ui.screens.tripdetail.TripDetailRoute
 import pl.wieczorek.planerpodrozy.ui.screens.triplist.TripListRoute
+
+private const val EditTransitionMillis = 300
 
 /** Mapa ekranów aplikacji: która trasa pokazuje który ekran i dokąd z niego można przejść. */
 @Composable
@@ -47,7 +53,17 @@ fun PlanerNavHost() {
                 onEdit = { navController.navigate(DayEditDestination(destination.dayId)) },
             )
         }
-        composable<DayEditDestination> { entry ->
+        // Edycja dnia wysuwa się od dołu nad widok dnia i chowa w dół przy powrocie (05 ↔ 05b).
+        composable<DayEditDestination>(
+            enterTransition = {
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, tween(EditTransitionMillis)) +
+                    fadeIn(tween(EditTransitionMillis))
+            },
+            popExitTransition = {
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, tween(EditTransitionMillis)) +
+                    fadeOut(tween(EditTransitionMillis))
+            },
+        ) { entry ->
             val destination = entry.toRoute<DayEditDestination>()
             DayEditRoute(dayId = destination.dayId, onClose = goBack)
         }
