@@ -7,14 +7,20 @@ data class CameraPhoto(val path: String, val uri: Uri)
 
 /**
  * Pliki multimediów w pamięci wewnętrznej aplikacji (filesDir).
- * Kopiujemy je tutaj, żeby nie stracić dostępu do zdjęć wybranych z galerii.
+ * Kopiujemy je tutaj, żeby nie stracić dostępu do plików wybranych z galerii.
  */
 interface MediaStorage {
     /** Kopiuje zdjęcie (np. z galerii) do pamięci aplikacji i zwraca ścieżkę kopii. */
     suspend fun importPhoto(source: Uri): String
 
+    /** Kopiuje film wybrany z galerii do pamięci aplikacji i zwraca ścieżkę kopii. */
+    suspend fun importVideo(source: Uri): String
+
     /** Tworzy pusty plik, do którego aplikacja aparatu zapisze zdjęcie. */
     fun createCameraPhoto(): CameraPhoto
+
+    /** Zwraca ścieżkę nowego pliku na nagranie notatki głosowej. */
+    fun createVoiceNoteFile(): String
 
     /** Usuwa plik (np. zastąpione lub usunięte zdjęcie). Brak pliku nie jest błędem. */
     suspend fun delete(path: String)
