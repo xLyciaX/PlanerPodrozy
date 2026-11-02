@@ -15,4 +15,17 @@ interface PhotoDao {
         """,
     )
     fun observeAllWithTripId(): Flow<List<PhotoWithTripId>>
+
+    /** Wszystkie zdjęcia jednej podróży (ze wszystkich jej dni). */
+    @Query(
+        """
+        SELECT photos.* FROM photos
+        INNER JOIN trip_days ON trip_days.id = photos.dayId
+        WHERE trip_days.tripId = :tripId
+        """,
+    )
+    fun observeByTrip(tripId: Long): Flow<List<PhotoEntity>>
+
+    @Query("SELECT * FROM photos WHERE dayId = :dayId")
+    fun observeByDay(dayId: Long): Flow<List<PhotoEntity>>
 }

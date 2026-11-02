@@ -2,6 +2,8 @@ package pl.wieczorek.planerpodrozy
 
 import android.content.Context
 import pl.wieczorek.planerpodrozy.data.local.AppDatabase
+import pl.wieczorek.planerpodrozy.data.repository.DayRepository
+import pl.wieczorek.planerpodrozy.data.repository.RoomDayRepository
 import pl.wieczorek.planerpodrozy.data.repository.RoomTripRepository
 import pl.wieczorek.planerpodrozy.data.repository.TripRepository
 
@@ -13,4 +15,5 @@ class AppContainer(context: Context) {
     private val database = AppDatabase.build(context)
 
     val tripRepository: TripRepository = RoomTripRepository(database)
+    val dayRepository: DayRepository = RoomDayRepository(database)
 }
