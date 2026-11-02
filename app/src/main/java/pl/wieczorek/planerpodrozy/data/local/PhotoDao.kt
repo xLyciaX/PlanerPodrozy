@@ -19,12 +19,13 @@ interface PhotoDao {
     )
     fun observeAllWithTripId(): Flow<List<PhotoWithTripId>>
 
-    /** Wszystkie zdjęcia jednej podróży (ze wszystkich jej dni). */
+    /** Wszystkie zdjęcia jednej podróży (ze wszystkich jej dni), po kolei: dzień, potem czas dodania. */
     @Query(
         """
         SELECT photos.* FROM photos
         INNER JOIN trip_days ON trip_days.id = photos.dayId
         WHERE trip_days.tripId = :tripId
+        ORDER BY trip_days.dayNumber, photos.addedAt
         """,
     )
     fun observeByTrip(tripId: Long): Flow<List<PhotoEntity>>

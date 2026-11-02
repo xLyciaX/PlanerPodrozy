@@ -14,6 +14,12 @@ data class TripDetail(
     val days: List<DaySummary>,
 )
 
+/** Zdjęcia całej podróży do galerii (ekran 07). */
+data class TripGallery(
+    val tripName: String,
+    val photos: List<Photo>,
+)
+
 /** Dzień ze zdjęciami przypisanymi do kategorii (najwyżej jedno na kategorię). */
 data class DayDetail(
     val day: TripDay,
