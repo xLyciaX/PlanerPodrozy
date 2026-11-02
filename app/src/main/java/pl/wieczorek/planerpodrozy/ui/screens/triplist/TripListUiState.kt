@@ -10,4 +10,6 @@ data class TripListUiState(
     val sortOrder: SortOrder = SortOrder.DESCENDING,
     /** true do pierwszego odczytu z bazy, żeby nie mignął komunikat o pustej liście. */
     val isLoading: Boolean = true,
+    /** Podróż czekająca na potwierdzenie usunięcia (null = dialog zamknięty). */
+    val tripToDelete: TripSummary? = null,
 )
