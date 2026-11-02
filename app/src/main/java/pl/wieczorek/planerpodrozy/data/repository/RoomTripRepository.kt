@@ -7,6 +7,7 @@ import pl.wieczorek.planerpodrozy.data.local.AppDatabase
 import pl.wieczorek.planerpodrozy.data.local.TripDayEntity
 import pl.wieczorek.planerpodrozy.data.local.TripEntity
 import pl.wieczorek.planerpodrozy.data.local.toDomain
+import pl.wieczorek.planerpodrozy.data.media.MediaStorage
 import pl.wieczorek.planerpodrozy.domain.coverPhoto
 import pl.wieczorek.planerpodrozy.domain.model.DaySummary
 import pl.wieczorek.planerpodrozy.domain.model.TripDetail
@@ -16,7 +17,10 @@ import pl.wieczorek.planerpodrozy.domain.tripDates
 import java.time.Instant
 import java.time.LocalDate
 
-class RoomTripRepository(private val database: AppDatabase) : TripRepository {
+class RoomTripRepository(
+    private val database: AppDatabase,
+    private val mediaStorage: MediaStorage,
+) : TripRepository {
 
     private val tripDao = database.tripDao()
     private val dayDao = database.dayDao()
@@ -62,6 +66,18 @@ class RoomTripRepository(private val database: AppDatabase) : TripRepository {
         combine(tripDao.observeById(tripId), photoDao.observeByTrip(tripId)) { trip, photos ->
             trip?.let { TripGallery(tripName = it.name, photos = photos.map { photo -> photo.toDomain() }) }
         }
+
+    override suspend fun setVideo(tripId: Long, filePath: String) {
+        val previous = tripDao.findById(tripId)?.videoPath
+        tripDao.updateVideo(tripId, filePath)
+        if (previous != null && previous != filePath) mediaStorage.delete(previous)
+    }
+
+    override suspend fun setVoiceNote(tripId: Long, filePath: String) {
+        val previous = tripDao.findById(tripId)?.voiceNotePath
+        tripDao.updateVoiceNote(tripId, filePath)
+        if (previous != null && previous != filePath) mediaStorage.delete(previous)
+    }
 
     // Transakcja: albo zapisze się podróż razem ze wszystkimi dniami, albo nic.
     override suspend fun createTrip(name: String, startDate: LocalDate, endDate: LocalDate): Long =

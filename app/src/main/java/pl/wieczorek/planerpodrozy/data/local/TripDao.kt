@@ -15,4 +15,13 @@ interface TripDao {
 
     @Query("SELECT * FROM trips WHERE id = :tripId")
     fun observeById(tripId: Long): Flow<TripEntity?>
+
+    @Query("SELECT * FROM trips WHERE id = :tripId")
+    suspend fun findById(tripId: Long): TripEntity?
+
+    @Query("UPDATE trips SET videoPath = :videoPath WHERE id = :tripId")
+    suspend fun updateVideo(tripId: Long, videoPath: String)
+
+    @Query("UPDATE trips SET voiceNotePath = :voiceNotePath WHERE id = :tripId")
+    suspend fun updateVoiceNote(tripId: Long, voiceNotePath: String)
 }

@@ -18,5 +18,11 @@ interface TripRepository {
     fun observeGallery(tripId: Long): Flow<TripGallery?>
 
     /** Zapisuje podróż i od razu tworzy jej dni (po jednym na datę). Zwraca id podróży. */
+    /** Ustawia film podróży; poprzedni film (i jego plik) jest zastępowany. */
+    suspend fun setVideo(tripId: Long, filePath: String)
+
+    /** Ustawia notatkę głosową podróży; poprzednia notatka (i jej plik) jest zastępowana. */
+    suspend fun setVoiceNote(tripId: Long, filePath: String)
+
     suspend fun createTrip(name: String, startDate: LocalDate, endDate: LocalDate): Long
 }

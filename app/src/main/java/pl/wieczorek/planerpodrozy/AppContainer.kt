@@ -21,6 +21,6 @@ class AppContainer(context: Context) {
     val mediaStorage: MediaStorage = FileMediaStorage(context)
     val audioRecorder: AudioRecorder = AndroidAudioRecorder(context)
 
-    val tripRepository: TripRepository = RoomTripRepository(database)
+    val tripRepository: TripRepository = RoomTripRepository(database, mediaStorage)
     val dayRepository: DayRepository = RoomDayRepository(database, mediaStorage)
 }
