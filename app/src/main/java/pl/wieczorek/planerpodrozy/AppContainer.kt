@@ -2,6 +2,8 @@ package pl.wieczorek.planerpodrozy
 
 import android.content.Context
 import pl.wieczorek.planerpodrozy.data.local.AppDatabase
+import pl.wieczorek.planerpodrozy.data.media.AndroidAudioRecorder
+import pl.wieczorek.planerpodrozy.data.media.AudioRecorder
 import pl.wieczorek.planerpodrozy.data.media.FileMediaStorage
 import pl.wieczorek.planerpodrozy.data.media.MediaStorage
 import pl.wieczorek.planerpodrozy.data.repository.DayRepository
@@ -17,7 +19,8 @@ class AppContainer(context: Context) {
     private val database = AppDatabase.build(context)
 
     val mediaStorage: MediaStorage = FileMediaStorage(context)
+    val audioRecorder: AudioRecorder = AndroidAudioRecorder(context)
 
-    val tripRepository: TripRepository = RoomTripRepository(database)
+    val tripRepository: TripRepository = RoomTripRepository(database, mediaStorage)
     val dayRepository: DayRepository = RoomDayRepository(database, mediaStorage)
 }

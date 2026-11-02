@@ -50,6 +50,10 @@
     <string name="media_record_voice">Nagraj notatkę głosową</string>
     <string name="media_record_voice_hint">Nagraj kilka słów o podróży</string>
     <string name="media_time_progress">%1$s / %2$s</string>
+    <string name="media_video_importing">Kopiowanie filmu…</string>
+    <string name="media_video_error">Nie udało się dodać filmu.</string>
+    <string name="media_record_error">Nie udało się nagrać notatki.</string>
+    <string name="media_mic_denied">Bez dostępu do mikrofonu nie da się nagrać notatki.</string>
     <string name="cd_play">Odtwórz</string>
     <string name="cd_pause">Wstrzymaj</string>
 
