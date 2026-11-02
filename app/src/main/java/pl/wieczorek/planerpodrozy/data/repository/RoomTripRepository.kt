@@ -10,6 +10,7 @@ import pl.wieczorek.planerpodrozy.data.local.toDomain
 import pl.wieczorek.planerpodrozy.domain.coverPhoto
 import pl.wieczorek.planerpodrozy.domain.model.DaySummary
 import pl.wieczorek.planerpodrozy.domain.model.TripDetail
+import pl.wieczorek.planerpodrozy.domain.model.TripGallery
 import pl.wieczorek.planerpodrozy.domain.model.TripSummary
 import pl.wieczorek.planerpodrozy.domain.tripDates
 import java.time.Instant
@@ -55,6 +56,11 @@ class RoomTripRepository(private val database: AppDatabase) : TripRepository {
                     )
                 },
             )
+        }
+
+    override fun observeGallery(tripId: Long): Flow<TripGallery?> =
+        combine(tripDao.observeById(tripId), photoDao.observeByTrip(tripId)) { trip, photos ->
+            trip?.let { TripGallery(tripName = it.name, photos = photos.map { photo -> photo.toDomain() }) }
         }
 
     // Transakcja: albo zapisze się podróż razem ze wszystkimi dniami, albo nic.

@@ -5,15 +5,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import pl.wieczorek.planerpodrozy.R
-import pl.wieczorek.planerpodrozy.ui.screens.SkeletonScreen
 import pl.wieczorek.planerpodrozy.ui.screens.day.DayRoute
 import pl.wieczorek.planerpodrozy.ui.screens.dayedit.DayEditRoute
+import pl.wieczorek.planerpodrozy.ui.screens.gallery.GalleryRoute
 import pl.wieczorek.planerpodrozy.ui.screens.newtrip.NewTripRoute
 import pl.wieczorek.planerpodrozy.ui.screens.tripdetail.TripDetailRoute
 import pl.wieczorek.planerpodrozy.ui.screens.triplist.TripListRoute
@@ -67,12 +65,9 @@ fun PlanerNavHost() {
             val destination = entry.toRoute<DayEditDestination>()
             DayEditRoute(dayId = destination.dayId, onClose = goBack)
         }
-        composable<GalleryDestination> {
-            SkeletonScreen(
-                title = stringResource(R.string.gallery_title, "…"),
-                onBack = goBack,
-                centeredTitle = false,
-            )
+        composable<GalleryDestination> { entry ->
+            val destination = entry.toRoute<GalleryDestination>()
+            GalleryRoute(tripId = destination.tripId, onBack = goBack)
         }
     }
 }
