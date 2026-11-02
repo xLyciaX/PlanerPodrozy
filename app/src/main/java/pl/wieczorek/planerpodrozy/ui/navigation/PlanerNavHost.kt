@@ -9,6 +9,7 @@ import androidx.navigation.toRoute
 import pl.wieczorek.planerpodrozy.R
 import pl.wieczorek.planerpodrozy.ui.screens.SkeletonScreen
 import pl.wieczorek.planerpodrozy.ui.screens.day.DayRoute
+import pl.wieczorek.planerpodrozy.ui.screens.dayedit.DayEditRoute
 import pl.wieczorek.planerpodrozy.ui.screens.newtrip.NewTripRoute
 import pl.wieczorek.planerpodrozy.ui.screens.tripdetail.TripDetailRoute
 import pl.wieczorek.planerpodrozy.ui.screens.triplist.TripListRoute
@@ -46,8 +47,9 @@ fun PlanerNavHost() {
                 onEdit = { navController.navigate(DayEditDestination(destination.dayId)) },
             )
         }
-        composable<DayEditDestination> {
-            SkeletonScreen(title = stringResource(R.string.day_edit_title), onBack = goBack)
+        composable<DayEditDestination> { entry ->
+            val destination = entry.toRoute<DayEditDestination>()
+            DayEditRoute(dayId = destination.dayId, onClose = goBack)
         }
         composable<GalleryDestination> {
             SkeletonScreen(
