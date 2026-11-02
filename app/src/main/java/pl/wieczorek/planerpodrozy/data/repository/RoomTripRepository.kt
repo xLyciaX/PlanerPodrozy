@@ -8,6 +8,8 @@ import pl.wieczorek.planerpodrozy.data.local.TripDayEntity
 import pl.wieczorek.planerpodrozy.data.local.TripEntity
 import pl.wieczorek.planerpodrozy.data.local.toDomain
 import pl.wieczorek.planerpodrozy.domain.coverPhoto
+import pl.wieczorek.planerpodrozy.domain.model.DaySummary
+import pl.wieczorek.planerpodrozy.domain.model.TripDetail
 import pl.wieczorek.planerpodrozy.domain.model.TripSummary
 import pl.wieczorek.planerpodrozy.domain.tripDates
 import java.time.Instant
@@ -28,6 +30,31 @@ class RoomTripRepository(private val database: AppDatabase) : TripRepository {
                     coverPath = coverPhoto(photosByTrip[trip.id].orEmpty())?.filePath,
                 )
             }
+        }
+
+    override fun observeTripDetail(tripId: Long): Flow<TripDetail?> =
+        combine(
+            tripDao.observeById(tripId),
+            dayDao.observeByTrip(tripId),
+            photoDao.observeByTrip(tripId),
+        ) { trip, days, photos ->
+            if (trip == null) return@combine null
+            val tripPhotos = photos.map { it.toDomain() }
+            val photosByDay = tripPhotos.groupBy { it.dayId }
+            TripDetail(
+                trip = trip.toDomain(),
+                // Okładka podróży: najwcześniej dodane zdjęcie z całej podróży.
+                coverPath = coverPhoto(tripPhotos)?.filePath,
+                days = days.map { day ->
+                    val dayPhotos = photosByDay[day.id].orEmpty()
+                    DaySummary(
+                        day = day.toDomain(),
+                        // Okładka dnia: najwcześniej dodane zdjęcie tego dnia.
+                        coverPath = coverPhoto(dayPhotos)?.filePath,
+                        photoCount = dayPhotos.size,
+                    )
+                },
+            )
         }
 
     // Transakcja: albo zapisze się podróż razem ze wszystkimi dniami, albo nic.

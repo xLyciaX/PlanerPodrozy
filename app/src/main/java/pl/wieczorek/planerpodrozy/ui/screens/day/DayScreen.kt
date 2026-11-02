@@ -1,0 +1,205 @@
+package pl.wieczorek.planerpodrozy.ui.screens.day
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import pl.wieczorek.planerpodrozy.R
+import pl.wieczorek.planerpodrozy.domain.model.DayDetail
+import pl.wieczorek.planerpodrozy.domain.model.PhotoCategory
+import pl.wieczorek.planerpodrozy.domain.model.TripDay
+import pl.wieczorek.planerpodrozy.ui.components.EmptyPhotoSlot
+import pl.wieczorek.planerpodrozy.ui.components.LocationRow
+import pl.wieczorek.planerpodrozy.ui.components.PhotoCard
+import pl.wieczorek.planerpodrozy.ui.components.PlanerTopAppBar
+import pl.wieczorek.planerpodrozy.ui.components.labelRes
+import pl.wieczorek.planerpodrozy.ui.components.planerCardBorder
+import pl.wieczorek.planerpodrozy.ui.planerViewModel
+import pl.wieczorek.planerpodrozy.ui.theme.Dimens
+import pl.wieczorek.planerpodrozy.ui.theme.PlanerPodrozyTheme
+import java.time.LocalDate
+
+/** Ekran 05 podłączony do ViewModelu. */
+@Composable
+fun DayRoute(
+    dayId: Long,
+    onBack: () -> Unit,
+    onEdit: () -> Unit,
+) {
+    val viewModel = planerViewModel { DayViewModel(dayId, it.dayRepository) }
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    DayScreen(
+        state = state,
+        onBack = onBack,
+        onEdit = onEdit,
+        // TODO etap 4: otwarcie wyboru źródła zdjęcia (ekran 06).
+        onAddPhoto = {},
+    )
+}
+
+/** Ekran 05: lokalizacje, trzy kadry dnia i opis. */
+@Composable
+fun DayScreen(
+    state: DayUiState,
+    onBack: () -> Unit,
+    onEdit: () -> Unit,
+    onAddPhoto: (PhotoCategory) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val detail = state.detail
+    val title = detail?.let { stringResource(R.string.day_number, it.day.dayNumber) }.orEmpty()
+    Scaffold(
+        topBar = { PlanerTopAppBar(title = title, onBack = onBack) },
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = modifier,
+    ) { padding ->
+        if (detail == null) return@Scaffold
+        Column(
+            verticalArrangement = Arrangement.spacedBy(Dimens.SpaceL),
+            modifier = Modifier
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = Dimens.ScreenPadding, vertical = Dimens.SpaceXl),
+        ) {
+            if (detail.day.locations.isNotEmpty()) {
+                // FlowRow zawija lokalizacje do kolejnej linii, gdy nie mieszczą się w jednej.
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceL),
+                    verticalArrangement = Arrangement.spacedBy(Dimens.SpaceS),
+                ) {
+                    detail.day.locations.forEach { LocationRow(text = it) }
+                }
+            }
+            PhotosHeader(onEdit = onEdit)
+            DayPhotos(detail = detail, onAddPhoto = onAddPhoto)
+            DayDescription(description = detail.day.description)
+        }
+    }
+}
+
+@Composable
+private fun PhotosHeader(onEdit: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = stringResource(R.string.day_photos_heading),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.weight(1f),
+        )
+        // Tonal button z M3 domyślnie bierze secondaryContainer; makieta ma liliowy primaryContainer.
+        FilledTonalButton(
+            onClick = onEdit,
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.primary,
+            ),
+        ) {
+            Icon(Icons.Outlined.Edit, contentDescription = null, modifier = Modifier.size(Dimens.IconS))
+            Text(
+                text = stringResource(R.string.day_edit),
+                modifier = Modifier.padding(start = Dimens.SpaceS),
+            )
+        }
+    }
+}
+
+/** Trzy kadry w stałej kolejności kategorii: zdjęcie albo pusty kadr „Dodaj zdjęcie”. */
+@Composable
+private fun DayPhotos(detail: DayDetail, onAddPhoto: (PhotoCategory) -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceM),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(Dimens.PhotoRowHeight),
+    ) {
+        PhotoCategory.entries.forEach { category ->
+            val label = stringResource(category.labelRes)
+            val slotModifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+            val photo = detail.photos[category]
+            if (photo != null) {
+                PhotoCard(imagePath = photo.filePath, label = label, modifier = slotModifier)
+            } else {
+                EmptyPhotoSlot(label = label, onClick = { onAddPhoto(category) }, modifier = slotModifier)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DayDescription(description: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(Dimens.SpaceM)) {
+        Text(
+            text = stringResource(R.string.day_description),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        OutlinedCard(
+            shape = MaterialTheme.shapes.extraLarge,
+            colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = planerCardBorder(),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(
+                text = description.ifBlank { stringResource(R.string.day_description_empty) },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(Dimens.SpaceL),
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Composable
+private fun DayScreenPreview() {
+    PlanerPodrozyTheme {
+        DayScreen(
+            state = DayUiState(
+                detail = DayDetail(
+                    day = TripDay(
+                        id = 1,
+                        tripId = 1,
+                        dayNumber = 1,
+                        date = LocalDate.of(2026, 7, 12),
+                        description = "Pierwszy dzień w Positano! Spacerowaliśmy wąskimi uliczkami.",
+                        locations = listOf("Positano, Włochy", "Amalfi, Włochy"),
+                    ),
+                    photos = emptyMap(),
+                ),
+                isLoading = false,
+            ),
+            onBack = {},
+            onEdit = {},
+            onAddPhoto = {},
+        )
+    }
+}

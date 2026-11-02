@@ -1,7 +1,7 @@
 package pl.wieczorek.planerpodrozy.ui.components
 
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -21,7 +21,9 @@ fun Modifier.dashedBorder(
     strokeWidth: Dp = 1.dp,
     dashLength: Dp = 6.dp,
     gapLength: Dp = 4.dp,
-): Modifier = drawBehind {
+): Modifier = drawWithContent {
+    // Najpierw zawartość (np. tło Surface), potem ramka na wierzchu, żeby tło jej nie zakryło.
+    drawContent()
     val stroke = strokeWidth.toPx()
     // Linia rysowana jest po środku obrysu, więc przesuwamy ją o pół grubości do środka.
     val inset = stroke / 2
