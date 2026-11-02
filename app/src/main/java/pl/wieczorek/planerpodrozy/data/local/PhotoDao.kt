@@ -32,6 +32,9 @@ interface PhotoDao {
     @Query("SELECT * FROM photos WHERE dayId = :dayId")
     fun observeByDay(dayId: Long): Flow<List<PhotoEntity>>
 
+    @Query("SELECT * FROM photos WHERE dayId = :dayId")
+    suspend fun findByDay(dayId: Long): List<PhotoEntity>
+
     @Query("SELECT * FROM photos WHERE dayId = :dayId AND category = :category")
     suspend fun find(dayId: Long, category: PhotoCategory): PhotoEntity?
 

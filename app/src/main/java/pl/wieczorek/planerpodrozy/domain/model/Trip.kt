@@ -42,6 +42,15 @@ data class Photo(
     val addedAt: Instant,
 )
 
+/**
+ * Zdjęcie w stanie roboczym edycji dnia (jeszcze niezapisane). [addedAt] to moment wybrania
+ * zdjęcia, więc po zapisie decyduje o okładkach tak samo jak przy zwykłym dodaniu.
+ */
+data class DraftPhoto(
+    val filePath: String,
+    val addedAt: Instant,
+)
+
 /** Podróż razem z okładką do pokazania na liście (null = grafika pustej podróży). */
 data class TripSummary(
     val trip: Trip,

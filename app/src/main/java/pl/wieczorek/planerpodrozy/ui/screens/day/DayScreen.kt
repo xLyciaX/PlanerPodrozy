@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -36,11 +34,9 @@ import pl.wieczorek.planerpodrozy.R
 import pl.wieczorek.planerpodrozy.domain.model.DayDetail
 import pl.wieczorek.planerpodrozy.domain.model.PhotoCategory
 import pl.wieczorek.planerpodrozy.domain.model.TripDay
-import pl.wieczorek.planerpodrozy.ui.components.EmptyPhotoSlot
+import pl.wieczorek.planerpodrozy.ui.components.DayPhotoRow
 import pl.wieczorek.planerpodrozy.ui.components.LocationRow
-import pl.wieczorek.planerpodrozy.ui.components.PhotoCard
 import pl.wieczorek.planerpodrozy.ui.components.PlanerTopAppBar
-import pl.wieczorek.planerpodrozy.ui.components.labelRes
 import pl.wieczorek.planerpodrozy.ui.components.planerCardBorder
 import pl.wieczorek.planerpodrozy.ui.media.PhotoSourceSheet
 import pl.wieczorek.planerpodrozy.ui.media.rememberPhotoSourceLaunchers
@@ -125,7 +121,10 @@ fun DayScreen(
                 }
             }
             PhotosHeader(onEdit = onEdit)
-            DayPhotos(detail = detail, onAddPhoto = onAddPhoto)
+            DayPhotoRow(
+                photoPaths = detail.photos.mapValues { it.value.filePath },
+                onAddPhoto = onAddPhoto,
+            )
             DayDescription(description = detail.day.description)
         }
     }
@@ -168,30 +167,6 @@ private fun PhotosHeader(onEdit: () -> Unit) {
                 text = stringResource(R.string.day_edit),
                 modifier = Modifier.padding(start = Dimens.SpaceS),
             )
-        }
-    }
-}
-
-/** Trzy kadry w stałej kolejności kategorii: zdjęcie albo pusty kadr „Dodaj zdjęcie”. */
-@Composable
-private fun DayPhotos(detail: DayDetail, onAddPhoto: (PhotoCategory) -> Unit) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceM),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(Dimens.PhotoRowHeight),
-    ) {
-        PhotoCategory.entries.forEach { category ->
-            val label = stringResource(category.labelRes)
-            val slotModifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-            val photo = detail.photos[category]
-            if (photo != null) {
-                PhotoCard(imagePath = photo.filePath, label = label, modifier = slotModifier)
-            } else {
-                EmptyPhotoSlot(label = label, onClick = { onAddPhoto(category) }, modifier = slotModifier)
-            }
         }
     }
 }
