@@ -20,9 +20,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -38,6 +42,8 @@ import pl.wieczorek.planerpodrozy.ui.components.PhotoCard
 import pl.wieczorek.planerpodrozy.ui.components.PlanerTopAppBar
 import pl.wieczorek.planerpodrozy.ui.components.labelRes
 import pl.wieczorek.planerpodrozy.ui.components.planerCardBorder
+import pl.wieczorek.planerpodrozy.ui.media.PhotoSourceSheet
+import pl.wieczorek.planerpodrozy.ui.media.rememberPhotoSourceLaunchers
 import pl.wieczorek.planerpodrozy.ui.planerViewModel
 import pl.wieczorek.planerpodrozy.ui.theme.Dimens
 import pl.wieczorek.planerpodrozy.ui.theme.PlanerPodrozyTheme
@@ -50,14 +56,24 @@ fun DayRoute(
     onBack: () -> Unit,
     onEdit: () -> Unit,
 ) {
-    val viewModel = planerViewModel { DayViewModel(dayId, it.dayRepository) }
+    val viewModel = planerViewModel { DayViewModel(dayId, it.dayRepository, it.mediaStorage) }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val launchers = rememberPhotoSourceLaunchers(
+        onPhotoTaken = viewModel::onCameraResult,
+        onPhotoPicked = viewModel::onGalleryResult,
+    )
     DayScreen(
         state = state,
         onBack = onBack,
         onEdit = onEdit,
-        // TODO etap 4: otwarcie wyboru źródła zdjęcia (ekran 06).
-        onAddPhoto = {},
+        onAddPhoto = viewModel::onAddPhoto,
+        onDismissPhotoSource = viewModel::onDismissPhotoSource,
+        onTakePhoto = { category -> launchers.takePhoto(viewModel.prepareCameraPhoto(category)) },
+        onPickFromGallery = { category ->
+            viewModel.onGalleryPickStarted(category)
+            launchers.pickFromGallery()
+        },
+        onPhotoErrorShown = viewModel::onPhotoErrorShown,
     )
 }
 
@@ -68,12 +84,26 @@ fun DayScreen(
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onAddPhoto: (PhotoCategory) -> Unit,
+    onDismissPhotoSource: () -> Unit,
+    onTakePhoto: (PhotoCategory) -> Unit,
+    onPickFromGallery: (PhotoCategory) -> Unit,
+    onPhotoErrorShown: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val detail = state.detail
     val title = detail?.let { stringResource(R.string.day_number, it.day.dayNumber) }.orEmpty()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val photoErrorMessage = stringResource(R.string.photo_add_error)
+    LaunchedEffect(state.showPhotoError) {
+        if (state.showPhotoError) {
+            snackbarHostState.showSnackbar(photoErrorMessage)
+            onPhotoErrorShown()
+        }
+    }
+
     Scaffold(
         topBar = { PlanerTopAppBar(title = title, onBack = onBack) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background,
         modifier = modifier,
     ) { padding ->
@@ -98,6 +128,18 @@ fun DayScreen(
             DayPhotos(detail = detail, onAddPhoto = onAddPhoto)
             DayDescription(description = detail.day.description)
         }
+    }
+
+    val category = state.photoSourceCategory
+    if (detail != null && category != null) {
+        PhotoSourceSheet(
+            category = category,
+            dayNumber = detail.day.dayNumber,
+            date = detail.day.date,
+            onTakePhoto = { onTakePhoto(category) },
+            onPickFromGallery = { onPickFromGallery(category) },
+            onDismiss = onDismissPhotoSource,
+        )
     }
 }
 
@@ -200,6 +242,10 @@ private fun DayScreenPreview() {
             onBack = {},
             onEdit = {},
             onAddPhoto = {},
+            onDismissPhotoSource = {},
+            onTakePhoto = {},
+            onPickFromGallery = {},
+            onPhotoErrorShown = {},
         )
     }
 }
