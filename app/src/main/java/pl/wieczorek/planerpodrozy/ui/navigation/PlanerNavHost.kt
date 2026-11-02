@@ -9,6 +9,7 @@ import androidx.navigation.toRoute
 import pl.wieczorek.planerpodrozy.R
 import pl.wieczorek.planerpodrozy.ui.screens.SkeletonScreen
 import pl.wieczorek.planerpodrozy.ui.screens.newtrip.NewTripRoute
+import pl.wieczorek.planerpodrozy.ui.screens.tripdetail.TripDetailRoute
 import pl.wieczorek.planerpodrozy.ui.screens.triplist.TripListRoute
 
 /** Mapa ekranów aplikacji: która trasa pokazuje który ekran i dokąd z niego można przejść. */
@@ -28,14 +29,12 @@ fun PlanerNavHost() {
             NewTripRoute(onClose = goBack)
         }
         composable<TripDetailDestination> { entry ->
-            val route = entry.toRoute<TripDetailDestination>()
-            SkeletonScreen(
-                title = "Podróż ${route.tripId}",
+            val destination = entry.toRoute<TripDetailDestination>()
+            TripDetailRoute(
+                tripId = destination.tripId,
                 onBack = goBack,
-                links = listOf(
-                    "Dzień 1" to { navController.navigate(DayDestination(dayId = 1)) },
-                    "Galeria" to { navController.navigate(GalleryDestination(tripId = route.tripId)) },
-                ),
+                onOpenGallery = { navController.navigate(GalleryDestination(destination.tripId)) },
+                onOpenDay = { dayId -> navController.navigate(DayDestination(dayId)) },
             )
         }
         composable<DayDestination> { entry ->
