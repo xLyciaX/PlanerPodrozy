@@ -8,6 +8,7 @@ import pl.wieczorek.planerpodrozy.data.local.PhotoEntity
 import pl.wieczorek.planerpodrozy.data.local.toDomain
 import pl.wieczorek.planerpodrozy.data.media.MediaStorage
 import pl.wieczorek.planerpodrozy.domain.model.DayDetail
+import pl.wieczorek.planerpodrozy.domain.model.DraftPhoto
 import pl.wieczorek.planerpodrozy.domain.model.PhotoCategory
 import java.time.Instant
 
@@ -42,5 +43,36 @@ class RoomDayRepository(
         }
         // Plik usuwamy dopiero po udanym zapisie w bazie.
         if (replaced != null && replaced.filePath != filePath) mediaStorage.delete(replaced.filePath)
+    }
+
+    override suspend fun saveDay(
+        dayId: Long,
+        locations: List<String>,
+        description: String,
+        photos: Map<PhotoCategory, DraftPhoto>,
+    ) {
+        val removedFiles = database.withTransaction {
+            dayDao.updateDetails(dayId, description, locations)
+            val current = photoDao.findByDay(dayId).associateBy { it.category }
+            val removed = mutableListOf<String>()
+            PhotoCategory.entries.forEach { category ->
+                val saved = current[category]
+                val draft = photos[category]
+                // Bez zmian w kadrze: nic nie robimy.
+                if (saved?.filePath == draft?.filePath) return@forEach
+                if (saved != null) {
+                    photoDao.delete(saved)
+                    removed += saved.filePath
+                }
+                if (draft != null) {
+                    photoDao.insert(
+                        PhotoEntity(dayId = dayId, category = category, filePath = draft.filePath, addedAt = draft.addedAt),
+                    )
+                }
+            }
+            removed
+        }
+        // Pliki usuwamy dopiero po udanym zapisie w bazie.
+        removedFiles.forEach { mediaStorage.delete(it) }
     }
 }

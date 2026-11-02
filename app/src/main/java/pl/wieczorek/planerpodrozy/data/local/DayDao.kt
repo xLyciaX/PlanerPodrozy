@@ -15,4 +15,7 @@ interface DayDao {
 
     @Query("SELECT * FROM trip_days WHERE id = :dayId")
     fun observeById(dayId: Long): Flow<TripDayEntity?>
+
+    @Query("UPDATE trip_days SET description = :description, locations = :locations WHERE id = :dayId")
+    suspend fun updateDetails(dayId: Long, description: String, locations: List<String>)
 }
