@@ -24,5 +24,8 @@ interface TripRepository {
     /** Ustawia notatkę głosową podróży; poprzednia notatka (i jej plik) jest zastępowana. */
     suspend fun setVoiceNote(tripId: Long, filePath: String)
 
+    /** Usuwa podróż razem z dniami, zdjęciami, filmem i notatką głosową (także z plikami). */
+    suspend fun deleteTrip(tripId: Long)
+
     suspend fun createTrip(name: String, startDate: LocalDate, endDate: LocalDate): Long
 }

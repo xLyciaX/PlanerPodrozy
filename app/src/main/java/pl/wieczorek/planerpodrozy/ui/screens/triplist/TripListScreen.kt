@@ -1,5 +1,6 @@
 package pl.wieczorek.planerpodrozy.ui.screens.triplist
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Luggage
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FloatingActionButton
@@ -27,11 +29,15 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -40,6 +46,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pl.wieczorek.planerpodrozy.R
 import pl.wieczorek.planerpodrozy.domain.model.Trip
 import pl.wieczorek.planerpodrozy.domain.model.TripSummary
+import pl.wieczorek.planerpodrozy.ui.components.DeleteTripDialog
 import pl.wieczorek.planerpodrozy.ui.components.TripCard
 import pl.wieczorek.planerpodrozy.ui.format.DateFormatter
 import pl.wieczorek.planerpodrozy.ui.planerViewModel
@@ -61,6 +68,9 @@ fun TripListRoute(
         onAddTrip = onAddTrip,
         onOpenTrip = onOpenTrip,
         onSortChange = viewModel::onSortChange,
+        onRequestDelete = viewModel::onRequestDelete,
+        onConfirmDelete = viewModel::onConfirmDelete,
+        onDismissDelete = viewModel::onDismissDelete,
     )
 }
 
@@ -71,6 +81,9 @@ fun TripListScreen(
     onAddTrip: () -> Unit,
     onOpenTrip: (tripId: Long) -> Unit,
     onSortChange: (SortOrder) -> Unit,
+    onRequestDelete: (TripSummary) -> Unit,
+    onConfirmDelete: () -> Unit,
+    onDismissDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -115,14 +128,22 @@ fun TripListScreen(
             when {
                 state.isLoading -> Unit
                 state.trips.isEmpty() -> EmptyTripList()
-                else -> TripList(trips = state.trips, onOpenTrip = onOpenTrip)
+                else -> TripList(trips = state.trips, onOpenTrip = onOpenTrip, onRequestDelete = onRequestDelete)
             }
         }
+    }
+
+    state.tripToDelete?.let { trip ->
+        DeleteTripDialog(tripName = trip.trip.name, onConfirm = onConfirmDelete, onDismiss = onDismissDelete)
     }
 }
 
 @Composable
-private fun TripList(trips: List<TripSummary>, onOpenTrip: (Long) -> Unit) {
+private fun TripList(
+    trips: List<TripSummary>,
+    onOpenTrip: (Long) -> Unit,
+    onRequestDelete: (TripSummary) -> Unit,
+) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(Dimens.SpaceM),
         // Dolny odstęp, żeby ostatniej karty nie zasłaniał przycisk „+”.
@@ -134,14 +155,53 @@ private fun TripList(trips: List<TripSummary>, onOpenTrip: (Long) -> Unit) {
         modifier = Modifier.fillMaxSize(),
     ) {
         items(trips, key = { it.trip.id }) { summary ->
-            TripCard(
-                name = summary.trip.name,
-                dateRange = DateFormatter.range(summary.trip.startDate, summary.trip.endDate),
-                days = summary.trip.dayCount,
-                coverPath = summary.coverPath,
-                onClick = { onOpenTrip(summary.trip.id) },
-            )
+            SwipeToDeleteBox(onDelete = { onRequestDelete(summary) }) {
+                TripCard(
+                    name = summary.trip.name,
+                    dateRange = DateFormatter.range(summary.trip.startDate, summary.trip.endDate),
+                    days = summary.trip.dayCount,
+                    coverPath = summary.coverPath,
+                    onClick = { onOpenTrip(summary.trip.id) },
+                )
+            }
         }
+    }
+}
+
+/**
+ * Przesunięcie karty od prawej do lewej odsłania czerwone tło z koszem i wywołuje [onDelete].
+ * Karta wraca na miejsce, bo o usunięciu decyduje dopiero dialog potwierdzenia.
+ */
+@Composable
+private fun SwipeToDeleteBox(onDelete: () -> Unit, content: @Composable () -> Unit) {
+    val state = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) onDelete()
+            // false: nie zostawiamy karty „odsuniętej”, wraca na miejsce.
+            false
+        },
+    )
+    SwipeToDismissBox(
+        state = state,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            Box(
+                contentAlignment = Alignment.CenterEnd,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(horizontal = Dimens.SpaceXl),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Delete,
+                    contentDescription = stringResource(R.string.cd_delete_trip),
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                )
+            }
+        },
+    ) {
+        content()
     }
 }
 
@@ -254,6 +314,9 @@ private fun TripListScreenPreview() {
             onAddTrip = {},
             onOpenTrip = {},
             onSortChange = {},
+            onRequestDelete = {},
+            onConfirmDelete = {},
+            onDismissDelete = {},
         )
     }
 }
@@ -267,6 +330,9 @@ private fun TripListScreenEmptyPreview() {
             onAddTrip = {},
             onOpenTrip = {},
             onSortChange = {},
+            onRequestDelete = {},
+            onConfirmDelete = {},
+            onDismissDelete = {},
         )
     }
 }

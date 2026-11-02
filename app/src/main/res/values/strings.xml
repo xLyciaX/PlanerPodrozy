@@ -22,6 +22,10 @@
     <string name="trip_list_sort_ascending">Sortuj rosnąco</string>
     <string name="trip_list_sort_descending">Sortuj malejąco</string>
     <string name="trip_list_empty_title">Nie masz jeszcze żadnej podróży</string>
+    <string name="trip_delete_title">Usunąć podróż?</string>
+    <string name="trip_delete_message">„%s” zostanie usunięta razem z dniami, zdjęciami, filmem i notatką głosową. Tej operacji nie da się cofnąć.</string>
+    <string name="action_delete">Usuń</string>
+    <string name="cd_delete_trip">Usuń podróż</string>
     <string name="trip_list_empty_hint">Kliknij „+”, aby zaplanować pierwszy wyjazd.</string>
 
     <!-- 02/03 Nowa podróż -->

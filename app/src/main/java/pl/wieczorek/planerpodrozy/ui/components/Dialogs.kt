@@ -2,8 +2,10 @@ package pl.wieczorek.planerpodrozy.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -90,6 +92,34 @@ fun RecordVoiceDialog(
     )
 }
 
+/** Potwierdzenie usunięcia podróży; „Usuń” w kolorze błędu, bo operacji nie da się cofnąć. */
+@Composable
+fun DeleteTripDialog(
+    tripName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
+        title = { Text(stringResource(R.string.trip_delete_title)) },
+        text = { Text(stringResource(R.string.trip_delete_message, tripName)) },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            ) {
+                Text(stringResource(R.string.action_delete))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+        },
+        iconContentColor = MaterialTheme.colorScheme.error,
+        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    )
+}
+
 @Preview
 @Composable
 private fun AddLocationDialogPreview() {
@@ -100,4 +130,10 @@ private fun AddLocationDialogPreview() {
 @Composable
 private fun RecordVoiceDialogPreview() {
     PlanerPodrozyTheme { RecordVoiceDialog(elapsedMs = 12_000, onStopAndSave = {}, onCancel = {}) }
+}
+
+@Preview
+@Composable
+private fun DeleteTripDialogPreview() {
+    PlanerPodrozyTheme { DeleteTripDialog(tripName = "Włochy 2026", onConfirm = {}, onDismiss = {}) }
 }

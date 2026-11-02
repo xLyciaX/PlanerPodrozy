@@ -79,6 +79,18 @@ class RoomTripRepository(
         if (previous != null && previous != filePath) mediaStorage.delete(previous)
     }
 
+    override suspend fun deleteTrip(tripId: Long) {
+        val files = database.withTransaction {
+            val trip = tripDao.findById(tripId) ?: return@withTransaction emptyList()
+            val paths = photoDao.findFilePathsByTrip(tripId) + listOfNotNull(trip.videoPath, trip.voiceNotePath)
+            // CASCADE w bazie usuwa też dni i wpisy zdjęć tej podróży.
+            tripDao.deleteById(tripId)
+            paths
+        }
+        // Pliki usuwamy dopiero po udanym usunięciu z bazy.
+        files.forEach { mediaStorage.delete(it) }
+    }
+
     // Transakcja: albo zapisze się podróż razem ze wszystkimi dniami, albo nic.
     override suspend fun createTrip(name: String, startDate: LocalDate, endDate: LocalDate): Long =
         database.withTransaction {

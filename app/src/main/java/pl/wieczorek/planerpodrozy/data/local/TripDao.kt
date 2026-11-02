@@ -19,6 +19,10 @@ interface TripDao {
     @Query("SELECT * FROM trips WHERE id = :tripId")
     suspend fun findById(tripId: Long): TripEntity?
 
+    /** Dni i zdjęcia podróży znikają razem z nią (klucze obce z CASCADE). */
+    @Query("DELETE FROM trips WHERE id = :tripId")
+    suspend fun deleteById(tripId: Long)
+
     @Query("UPDATE trips SET videoPath = :videoPath WHERE id = :tripId")
     suspend fun updateVideo(tripId: Long, videoPath: String)
 
