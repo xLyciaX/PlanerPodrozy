@@ -81,6 +81,7 @@
     <string name="photo_source_camera_hint">Uchwyć tę chwilę aparatem</string>
     <string name="photo_source_gallery">Wybierz z galerii</string>
     <string name="photo_source_gallery_hint">Dodaj wspomnienie z telefonu</string>
+    <string name="photo_add_error">Nie udało się dodać zdjęcia.</string>
 
     <!-- 07 Galeria -->
     <string name="gallery_title">Galeria – %s</string>
