@@ -33,6 +33,16 @@ interface PhotoDao {
     @Query("SELECT * FROM photos WHERE dayId = :dayId")
     fun observeByDay(dayId: Long): Flow<List<PhotoEntity>>
 
+    /** Ścieżki plików wszystkich zdjęć podróży (do usunięcia razem z podróżą). */
+    @Query(
+        """
+        SELECT photos.filePath FROM photos
+        INNER JOIN trip_days ON trip_days.id = photos.dayId
+        WHERE trip_days.tripId = :tripId
+        """,
+    )
+    suspend fun findFilePathsByTrip(tripId: Long): List<String>
+
     @Query("SELECT * FROM photos WHERE dayId = :dayId")
     suspend fun findByDay(dayId: Long): List<PhotoEntity>
 
